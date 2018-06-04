@@ -26,6 +26,9 @@
 - (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser didDismissActionSheetWithButtonIndex:(NSUInteger)buttonIndex photoIndex:(NSUInteger)photoIndex;
 - (IDMCaptionView *)photoBrowser:(IDMPhotoBrowser *)photoBrowser captionViewForPhotoAtIndex:(NSUInteger)index;
 - (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser imageFailed:(NSUInteger)index imageView:(IDMTapDetectingImageView *)imageView;
+
+- (UIButton *)leftCustomButtonWithPhotoBrowser:(IDMPhotoBrowser *)photoBrowser;
+- (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser didLeftCustomActionWithPhotoIndex:(NSUInteger)photoIndex;
 @end
 
 // IDMPhotoBrowser
@@ -39,6 +42,8 @@
 @property (nonatomic) BOOL displayCounterLabel;
 @property (nonatomic) BOOL displayArrowButton;
 @property (nonatomic) BOOL displayActionButton;
+@property (nonatomic) BOOL displayLeftToolView;
+@property (nonatomic) BOOL displaySaveImgButton;
 @property (nonatomic, strong) NSArray *actionButtonTitles;
 @property (nonatomic, weak) UIImage *leftArrowImage, *leftArrowSelectedImage;
 @property (nonatomic, weak) UIImage *rightArrowImage, *rightArrowSelectedImage;

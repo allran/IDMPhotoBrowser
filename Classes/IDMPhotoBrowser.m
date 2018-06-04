@@ -40,6 +40,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 	// Toolbar
 	UIToolbar *_toolbar;
 	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton;
+    UIBarButtonItem *_leftToolButton;
     UIBarButtonItem *_counterButton;
     UILabel *_counterLabel;
 
@@ -565,6 +566,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return button;
 }
 
+- (void)resetToolbarButtonFrameWithView:(UIView *)view{
+    BOOL const isRetinaHd = ((float)[[UIScreen mainScreen] scale] > 2.0f);
+    float const defaultButtonSize = isRetinaHd ? 66.0f : 44.0f;
+    CGFloat buttonWidth = (view.bounds.size.width > defaultButtonSize) ? view.bounds.size.width : defaultButtonSize;
+    CGFloat buttonHeight = (view.bounds.size.height > defaultButtonSize) ? view.bounds.size.width : defaultButtonSize;
+    view.frame = CGRectMake(0,0, buttonWidth, buttonHeight);
+}
+
 - (CGRect)getToolbarButtonFrame:(UIImage *)image{
     BOOL const isRetinaHd = ((float)[[UIScreen mainScreen] scale] > 2.0f);
     float const defaultButtonSize = isRetinaHd ? 66.0f : 44.0f;
@@ -696,6 +705,18 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
                                                                   target:self
                                                                   action:@selector(actionButtonPressed:)];
+    }
+    
+    if (_displayLeftToolView && _leftToolButton==nil) {
+        UIButton *leftToolButton = nil;
+        if ([_delegate respondsToSelector:@selector(leftCustomButtonWithPhotoBrowser:)]) {
+            leftToolButton = [_delegate leftCustomButtonWithPhotoBrowser:self];
+        }
+        if (leftToolButton != nil) {
+            [leftToolButton addTarget:self action:@selector(leftToolButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+            [self resetToolbarButtonFrameWithView:leftToolButton];
+        }
+        _leftToolButton = [[UIBarButtonItem alloc] initWithCustomView:leftToolButton];
     }
 
     // Gesture
@@ -850,6 +871,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
                                                                                target:self action:nil];
     NSMutableArray *items = [NSMutableArray new];
+    
+    if (_displayLeftToolView && _leftToolButton!=nil) {
+        [items addObject:flexSpace];
+        [items addObject:_leftToolButton];
+    }
 
     if (_displayActionButton)
         [items addObject:fixedLeftSpace];
@@ -1333,6 +1359,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 }
 
 #pragma mark - Buttons
+
+-(void)leftToolButtonPressed:(id)sender
+{
+    if ([_delegate respondsToSelector:@selector(photoBrowser:didLeftCustomActionWithPhotoIndex:)]) {
+        [_delegate photoBrowser:self didLeftCustomActionWithPhotoIndex:_currentPageIndex];
+    }
+}
 
 - (void)doneButtonPressed:(id)sender {
     if ([_delegate respondsToSelector:@selector(willDisappearPhotoBrowser:)]) {

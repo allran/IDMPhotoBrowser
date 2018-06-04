@@ -27,8 +27,8 @@
 - (IDMCaptionView *)photoBrowser:(IDMPhotoBrowser *)photoBrowser captionViewForPhotoAtIndex:(NSUInteger)index;
 - (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser imageFailed:(NSUInteger)index imageView:(IDMTapDetectingImageView *)imageView;
 
-- (UIButton *)leftCustomButtonWithPhotoBrowser:(IDMPhotoBrowser *)photoBrowser;
-- (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser didLeftCustomActionWithPhotoIndex:(NSUInteger)photoIndex;
+- (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser didLeftToolWithPhotoIndex:(NSUInteger)photoIndex photo:(IDMPhoto *)photo;
+- (void)photoBrowser:(IDMPhotoBrowser *)photoBrowser didActionToolWithPhotoIndex:(NSUInteger)photoIndex photo:(IDMPhoto *)photo;
 @end
 
 // IDMPhotoBrowser
@@ -42,12 +42,15 @@
 @property (nonatomic) BOOL displayCounterLabel;
 @property (nonatomic) BOOL displayArrowButton;
 @property (nonatomic) BOOL displayActionButton;
-@property (nonatomic) BOOL displayLeftToolView;
-@property (nonatomic) BOOL displaySaveImgButton;
 @property (nonatomic, strong) NSArray *actionButtonTitles;
 @property (nonatomic, weak) UIImage *leftArrowImage, *leftArrowSelectedImage;
 @property (nonatomic, weak) UIImage *rightArrowImage, *rightArrowSelectedImage;
 @property (nonatomic, weak) UIImage *actionButtonImage, *actionButtonSelectedImage;
+
+@property (nonatomic) BOOL displayToolLeftButton;
+@property (nonatomic) BOOL actionButtonNotShowSheet;
+@property (nonatomic, strong) NSString *toolLeftButtonTitle;
+@property (nonatomic, strong) NSString *toolActionButtonTitle;
 
 // View customization
 @property (nonatomic) BOOL displayDoneButton;

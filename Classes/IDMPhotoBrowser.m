@@ -566,6 +566,22 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return button;
 }
 
+- (UIButton*)customToolbarButtonTitle:(NSString*)title action:(SEL)action
+{
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
+    [button setContentMode:UIViewContentModeCenter];
+    [button setTitleColor:[UIColor colorWithWhite:0.9 alpha:0.9] forState:UIControlStateNormal|UIControlStateHighlighted];
+    [button setTitle:title forState:UIControlStateNormal];
+    [button.titleLabel setFont:[UIFont boldSystemFontOfSize:11.0f]];
+    [button setBackgroundColor:[UIColor colorWithWhite:0.1 alpha:0.5]];
+    button.layer.cornerRadius = 3.0f;
+    button.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:0.9].CGColor;
+    button.layer.borderWidth = 1.0f;
+    button.frame = CGRectMake(0, 0, 50, 30);
+    return button;
+}
+
 - (void)resetToolbarButtonFrameWithView:(UIView *)view{
     BOOL const isRetinaHd = ((float)[[UIScreen mainScreen] scale] > 2.0f);
     float const defaultButtonSize = isRetinaHd ? 66.0f : 44.0f;
@@ -695,27 +711,26 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     // Counter Button
     _counterButton = [[UIBarButtonItem alloc] initWithCustomView:_counterLabel];
 
-    // Action Button
-    if(_actionButtonImage != nil && _actionButtonSelectedImage != nil) {
-        _actionButton = [[UIBarButtonItem alloc] initWithCustomView:[self customToolbarButtonImage:_actionButtonImage
-                                                                                   imageSelected:_actionButtonSelectedImage
-                                                                                          action:@selector(actionButtonPressed:)]];
+    if (_displayActionButton) {
+        if (_toolActionButtonTitle!=nil && _toolActionButtonTitle.length>0) {
+            UIButton *actionToolButton = [self customToolbarButtonTitle:_toolActionButtonTitle action:@selector(actionButtonPressed:)];
+            _actionButton = [[UIBarButtonItem alloc] initWithCustomView:actionToolButton];
+        }
+        else if(_actionButtonImage != nil && _actionButtonSelectedImage != nil) {
+            _actionButton = [[UIBarButtonItem alloc] initWithCustomView:[self customToolbarButtonImage:_actionButtonImage
+                                                                                         imageSelected:_actionButtonSelectedImage
+                                                                                                action:@selector(actionButtonPressed:)]];
+        }
+        else {
+            _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
+                                                                          target:self
+                                                                          action:@selector(actionButtonPressed:)];
+        }
     }
-    else {
-        _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
-                                                                  target:self
-                                                                  action:@selector(actionButtonPressed:)];
-    }
+
     
-    if (_displayLeftToolView && _leftToolButton==nil) {
-        UIButton *leftToolButton = nil;
-        if ([_delegate respondsToSelector:@selector(leftCustomButtonWithPhotoBrowser:)]) {
-            leftToolButton = [_delegate leftCustomButtonWithPhotoBrowser:self];
-        }
-        if (leftToolButton != nil) {
-            [leftToolButton addTarget:self action:@selector(leftToolButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-            [self resetToolbarButtonFrameWithView:leftToolButton];
-        }
+    if (_displayToolLeftButton && _leftToolButton==nil) {
+        UIButton *leftToolButton = [self customToolbarButtonTitle:_toolLeftButtonTitle action:@selector(leftToolButtonPressed:)];
         _leftToolButton = [[UIBarButtonItem alloc] initWithCustomView:leftToolButton];
     }
 
@@ -872,13 +887,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
                                                                                target:self action:nil];
     NSMutableArray *items = [NSMutableArray new];
     
-    if (_displayLeftToolView && _leftToolButton!=nil) {
-        [items addObject:flexSpace];
+    if (_displayToolLeftButton && _leftToolButton!=nil) {
         [items addObject:_leftToolButton];
     }
 
-    if (_displayActionButton)
-        [items addObject:fixedLeftSpace];
     [items addObject:flexSpace];
 
     if (numberOfPhotos > 1 && _displayArrowButton)
@@ -1362,8 +1374,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 -(void)leftToolButtonPressed:(id)sender
 {
-    if ([_delegate respondsToSelector:@selector(photoBrowser:didLeftCustomActionWithPhotoIndex:)]) {
-        [_delegate photoBrowser:self didLeftCustomActionWithPhotoIndex:_currentPageIndex];
+     id <IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
+    if ([_delegate respondsToSelector:@selector(photoBrowser:didLeftToolWithPhotoIndex:photo:)]) {
+        [_delegate photoBrowser:self didLeftToolWithPhotoIndex:_currentPageIndex photo:photo];
     }
 }
 
@@ -1387,6 +1400,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     id <IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
 
     if ([self numberOfPhotos] > 0 && [photo underlyingImage]) {
+        if (_actionButtonNotShowSheet) {
+            if ([_delegate respondsToSelector:@selector(photoBrowser:didActionToolWithPhotoIndex:photo:)]) {
+                [_delegate photoBrowser:self didActionToolWithPhotoIndex:_currentPageIndex photo:photo];
+            }
+            return;
+        }
+        
         if(!_actionButtonTitles)
         {
             // Activity view

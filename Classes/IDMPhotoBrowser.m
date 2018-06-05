@@ -1490,4 +1490,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 		}];
 	}
 }
+
+- (void)dissmissBrowser
+{
+    [self doneButtonPressed:nil];
+}
+
 @end
